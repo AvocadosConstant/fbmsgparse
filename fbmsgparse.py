@@ -64,6 +64,11 @@ class FbMsgParse:
 
         allow_personals : bool
             Whether or not direct messages should be included.
+
+        Returns
+        -------
+        texts : list of str
+            All the message bodies sent by a user.
         """
         texts = []
         for thread in self.threads:
