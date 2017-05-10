@@ -38,7 +38,9 @@ class FbMsgParse:
         self.threads = []
 
         for div in thread_divs:
-            ids = div.find(text=re.compile("@facebook.com")).split(',')
+            ids = [uid.replace('@facebook.com', '')
+                    for uid
+                    in div.find(text=re.compile('@facebook.com')).split(',')]
             senders = [sender.text.strip()
                        for sender in div.find_all('span', class_='user')]
             dates = [datetime.strptime(date.text.strip(), DATE_FORMAT)
