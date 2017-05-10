@@ -8,6 +8,8 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
+[Install BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-beautiful-soup)
+
 Download an archive of your all your Facebook data.
 
 1. Log into Facebook.
@@ -15,8 +17,7 @@ Download an archive of your all your Facebook data.
 3. At the bottom of General Account Settings find the line of text that says "Download a copy of your Facebook data" and click the link.
 4. Follow the instructions on the next page.
 5. After your archive is compiled, you will receive an email with your download link.
-6. Extract your data dump.
-	6a. Your messages.htm file is located in ./html/messages.htm
+6. Extract your data dump. Your messages.htm file is located in ./html/messages.htm
 
 ### Example
 
@@ -32,11 +33,10 @@ Create a FbMsgParse object with the path to your messages.htm document.
 messages_path ='html/messages.htm' 
 parsed = fb.FbMsgParse(messages_path)
 ```
-
 Use unique_user_messages() to extract a list of all of that user's messages.
 ```python
 u_name = 'Chris Beard'
-u_id = '1487474269@facebook.com'
+u_id = '1487474269'
 print(parsed.unique_user_messages(u_id, u_name))
 ```
 
