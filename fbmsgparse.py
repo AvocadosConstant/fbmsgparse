@@ -1,35 +1,80 @@
-from bs4 import BeautifulSoup
+from collections import namedtuple
 from datetime import datetime
 import re
 
+from bs4 import BeautifulSoup
+
+
+DATE_FORMAT = '%A, %B %d, %Y at %I:%M%p %Z'
+"""
+The date format used in messages.
+"""
+
+Message = namedtuple('Message', 'sender date text')
+Thread = namedtuple('Thread', 'uids messages')
+
+
 class FbMsgParse:
+    """
+    Represents the Facebook message archive as a whole.
+
+    Parameters
+    ----------
+    path : str
+        The location of the message archive html-document.
+
+    Attributes
+    ----------
+    threads : list of Thread
+        All the direct messages or group chats in the archive.
+    """
     def __init__(self, path):
-        with open(path) as fp:
-            soup = BeautifulSoup(fp, 'html.parser')
+        with open(path) as fileobj:
+            soup = BeautifulSoup(fileobj, 'html.parser')
 
         # Extract all threads
-        threads = soup.find_all('div', class_='thread')
+        thread_divs = soup.find_all('div', class_='thread')
 
-        threads_ids, threads_msgs = [], []
+        self.threads = []
 
-        for thread in threads:
-            ids = thread.find(text=re.compile("@facebook.com")).split(',')
-            threads_ids.append([uid.strip() for uid in ids])
+        for div in thread_divs:
+            ids = [uid.replace('@facebook.com', '')
+                    for uid
+                    in div.find(text=re.compile('@facebook.com')).split(',')]
+            senders = [sender.text.strip()
+                       for sender in div.find_all('span', class_='user')]
+            dates = [datetime.strptime(date.text.strip(), DATE_FORMAT)
+                     for date in div.find_all('span', class_='meta')]
+            texts = [text.text.strip() for text in div.find_all('p')]
 
-            senders = [sender.text.strip() for sender in thread.find_all('span', class_='user')]
-            # This doesn't work on Windows because it's dumb
-            dates = [datetime.strptime(date.text.strip(), '%A, %B %d, %Y at %I:%M%p %Z')
-                     for date in thread.find_all('span', class_='meta')]
-            texts = [text.text.strip() for text in thread.find_all('p')]
-            threads_msgs.append(zip(senders, dates, texts))
-        self.threads = zip(threads_ids, threads_msgs)
+            messages = [Message(*msg) for msg in zip(senders, dates, texts)]
+            self.threads.append(Thread(ids, messages))
 
-    def unique_user_messages(self, u_id, u_name):
+    def unique_user_messages(self, u_id, u_name, allow_personals=True):
+        """
+        Gets all unique messages sent by a user.
+
+        Parameters
+        ----------
+        u_id : str
+            A Facebook user id.
+
+        u_name : str
+            A user's displayed name on Facebook.
+
+        allow_personals : bool
+            Whether or not direct messages should be included.
+
+        Returns
+        -------
+        texts : list of str
+            All the message bodies sent by a user.
+        """
         texts = []
         for thread in self.threads:
             # Don't add personal chat
-            if len(thread[0]) > 2:
-                for msgs in thread[1]:
-                    if msgs[0] == u_name or msgs[0] == u_id:
-                        texts.append(msgs[2])
+            if allow_personals or len(thread.uids) > 2:
+                for msg in thread.messages:
+                    if msg.sender == u_name or msg.sender == u_id:
+                        texts.append(msg.text)
         return texts
