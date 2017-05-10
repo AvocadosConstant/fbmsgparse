@@ -33,6 +33,20 @@ class FbMsgParse:
             self.threads.append(Thread(ids, messages))
 
     def unique_user_messages(self, u_id, u_name, allow_personals=True):
+        """
+        Gets all unique messages sent by a user.
+
+        Parameters
+        ----------
+        u_id : str
+            A Facebook user id.
+
+        u_name : str
+            A user's displayed name on Facebook.
+
+        allow_personals : bool
+            Whether or not direct messages should be included.
+        """
         texts = []
         for thread in self.threads:
             # Don't add personal chat
