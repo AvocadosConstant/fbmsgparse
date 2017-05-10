@@ -8,6 +8,6 @@ fmp = fb.FbMsgParse(messages_path)
 print(fmp.stats())
 
 # Extract all messages sent by a certain user
-u_name = 'Chris Beard'
-u_id = '1487474269'
+u_name = 'Name Surname'
+u_id = '1234567890'
 msgs = fmp.unique_user_messages(u_id, u_name, allow_personals=False)
