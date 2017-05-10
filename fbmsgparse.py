@@ -6,12 +6,28 @@ from bs4 import BeautifulSoup
 
 
 DATE_FORMAT = '%A, %B %d, %Y at %I:%M%p %Z'
+"""
+The date format used in messages.
+"""
 
 Message = namedtuple('Message', 'sender date text')
 Thread = namedtuple('Thread', 'uids messages')
 
 
 class FbMsgParse:
+    """
+    Represents the Facebook message archive as a whole.
+
+    Parameters
+    ----------
+    path : str
+        The location of the message archive html-document.
+
+    Attributes
+    ----------
+    threads : list of Thread
+        All the direct messages or group chats in the archive.
+    """
     def __init__(self, path):
         with open(path) as fileobj:
             soup = BeautifulSoup(fileobj, 'html.parser')
