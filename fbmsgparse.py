@@ -3,6 +3,7 @@ from datetime import datetime
 import re
 
 from bs4 import BeautifulSoup
+from bs4 import SoupStrainer
 
 
 DATE_FORMAT = '%A, %B %d, %Y at %I:%M%p %Z'
@@ -29,8 +30,10 @@ class FbMsgParse:
         All the direct messages or group chats in the archive.
     """
     def __init__(self, path):
+        only_threads = SoupStrainer('div', class_='thread')
+
         with open(path) as fileobj:
-            soup = BeautifulSoup(fileobj, 'html.parser')
+            soup = BeautifulSoup(fileobj, 'lxml', parse_only=only_threads)
 
         # Extract all threads
         thread_divs = soup.find_all('div', class_='thread')

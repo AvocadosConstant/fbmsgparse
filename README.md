@@ -8,7 +8,11 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-[Install BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-beautiful-soup)
+[Install python3](https://www.python.org/downloads/): Self explanatory.
+
+[Install BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-beautiful-soup): Required for HTML parsing.
+
+[Install the lxml parser](http://lxml.de/installation.html): lxml is way faster than html.parser or html5lib.
 
 Download an archive of your all your Facebook data.
 
