@@ -25,23 +25,27 @@ Download an archive of your all your Facebook data.
 
 ### Example
 
-How to extract all the messages sent by a given user.
+See [example.py](./example.py) for more.
+
 
 Import fbmsgparse
 ```python
 import fbmsgparse as fb
 ```
-
 Create a FbMsgParse object with the path to your messages.htm document.
 ```python
 messages_path ='html/messages.htm' 
-parsed = fb.FbMsgParse(messages_path)
+fmp = fb.FbMsgParse(messages_path)
 ```
-Use unique_user_messages() to extract a list of all of that user's messages.
+Print out some stats
+```python
+print(fmp.stats())
+```
+Use unique_user_messages() to extract a list of all of that user's messages (excluding direct messages with them).
 ```python
 u_name = 'Chris Beard'
 u_id = '1487474269'
-print(parsed.unique_user_messages(u_id, u_name))
+msgs = fmp.unique_user_messages(u_id, u_name, allow_personals=False)
 ```
 
 

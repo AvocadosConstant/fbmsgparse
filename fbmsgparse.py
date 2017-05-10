@@ -2,8 +2,7 @@ from collections import namedtuple
 from datetime import datetime
 import re
 
-from bs4 import BeautifulSoup
-from bs4 import SoupStrainer
+from bs4 import BeautifulSoup, SoupStrainer
 
 
 DATE_FORMAT = '%A, %B %d, %Y at %I:%M%p %Z'
@@ -81,3 +80,6 @@ class FbMsgParse:
                     if msg.sender == u_name or msg.sender == u_id:
                         texts.append(msg.text)
         return texts
+
+    def stats(self):
+        return 'There are %d parsed conversations.\n' % len(self.threads)
