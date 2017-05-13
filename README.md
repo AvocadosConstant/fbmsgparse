@@ -57,4 +57,4 @@ msgs = fmp.get_user_messages(u_id, u_name, min_size=3)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
