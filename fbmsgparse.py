@@ -3,6 +3,7 @@ from datetime import datetime
 import re
 import pickle
 import sys
+import os.path
 
 from bs4 import BeautifulSoup, SoupStrainer
 
@@ -17,55 +18,87 @@ Thread = namedtuple('Thread', 'uids messages')
 
 
 class FbMsgParse:
-    """
-    Represents the Facebook message archive as a whole.
+    """ Represents the Facebook message archive as a whole.
+
+    At least one of the params is required to construct a FbMsgParse object.
+    If only source_path is defined, the object will be parsed anew.
+    If only save_path is defined, the object will be loaded from a save file.
+    If both are provided, the object will try to load from a save file.
+        If the save file is not valid, it will be parsed anew from source_path.
+        It will also save the newly parsed object to save_path.
 
     Parameters
     ----------
-    path : str
-        The location of the message archive html-document
-        or the location of the serialized save file.
+    source_path : str, optional*
+        The path to the Facebook message archive htm-document.
 
-    load : bool, optional
-        True if loading from a serialized save file
+    save_path : str, optional*
+        The location to the serialized save file.
+
+    *: At most one param can be optional
 
     Attributes
     ----------
     threads : list of Thread
         All the direct messages or group chats in the archive.
     """
-    def __init__(self, path, load=False):
-        if load:
-            print('Creating FbMsgParse object from save file', path)
-            self.load(path)
+    def __init__(self, source_path=None, save_path=None):
+        # Only `source_path` is defined
+        if not source_path and save_path:
+            self.load(save_path)
+
+        # Only `save_path` is defined
+        elif source_path and not save_path:
+            self.parse(source_path)
+
+        # Both params are defined
+        elif source_path and save_path:
+            if os.path.isfile(save_path):
+                self.load(save_path)
+            else:
+                self.parse(source_path)
+                self.save(save_path)
+
+        # Neither param is defined
         else:
-            print('Creating FbMsgParse object from source html', path)
-            only_threads = SoupStrainer('div', class_='thread')
+            # TODO: Implement something more logical here.
+            #       Maybe raise a custom exception?
+            print('Please pass in valid params')
+            sys.exit(1)
 
-            with open(path) as fileobj:
-                soup = BeautifulSoup(fileobj, 'lxml', parse_only=only_threads)
+    def parse(self, path):
+        """ Parses a source Facebook message archive .htm file into self.threads
 
-            # Extract all threads
-            thread_divs = soup.find_all('div', class_='thread')
+        Parameters
+        ----------
+        path : str
+            The path to the Facebook message archive htm-document.
+        """
+        only_threads = SoupStrainer('div', class_='thread')
 
-            self.threads = []
+        with open(path) as fileobj:
+            soup = BeautifulSoup(fileobj, 'lxml', parse_only=only_threads)
 
-            for div in thread_divs:
-                ids = [uid.replace('@facebook.com', '')
-                        for uid
-                        in div.find(text=re.compile('@facebook.com')).split(',')]
-                senders = [sender.text.strip()
-                           for sender in div.find_all('span', class_='user')]
-                dates = [datetime.strptime(date.text.strip(), DATE_FORMAT)
-                         for date in div.find_all('span', class_='meta')]
-                texts = [text.text.strip() for text in div.find_all('p')]
+        # Extract all threads
+        thread_divs = soup.find_all('div', class_='thread')
 
-                messages = [Message(*msg) for msg in zip(senders, dates, texts)]
-                self.threads.append(Thread(ids, messages))
+        self.threads = []
+
+        for div in thread_divs:
+            ids = [uid.replace('@facebook.com', '')
+                    for uid
+                    in div.find(text=re.compile('@facebook.com')).split(',')]
+            senders = [sender.text.strip()
+                       for sender in div.find_all('span', class_='user')]
+            dates = [datetime.strptime(date.text.strip(), DATE_FORMAT)
+                     for date in div.find_all('span', class_='meta')]
+            texts = [text.text.strip() for text in div.find_all('p')]
+
+            messages = [Message(*msg) for msg in zip(senders, dates, texts)]
+            self.threads.append(Thread(ids, messages))
 
     def save(self, path):
-        """
-        Serializes self.threads into the given path.
+        """ Serializes self.threads into the given path.
 
         Parameters
         ----------
@@ -75,8 +108,7 @@ class FbMsgParse:
         pickle.dump(self.threads, open(path, 'wb'))
 
     def load(self, path):
-        """
-        Loads self.threads from serialized savefile.
+        """ Loads self.threads from serialized save file.
 
         Parameters
         ----------
@@ -95,8 +127,7 @@ class FbMsgParse:
             sys.exit(1)
 
     def unique_user_messages(self, u_id, u_name, allow_personals=True):
-        """
-        Gets all unique messages sent by a user.
+        """ Retrieves all unique messages sent by a user.
 
         Parameters
         ----------
