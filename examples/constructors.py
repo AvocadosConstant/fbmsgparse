@@ -21,7 +21,7 @@ fmp = FbMsgParse(messages_path)
 
 
 
-# Forces construction by parsing a messages.htm file
+# Forces construction by loading from a save file
 fmp = FbMsgParse(save_path=save_file_path)
 
 
@@ -32,4 +32,4 @@ fmp = FbMsgParse(save_path=save_file_path)
 fmp = FbMsgParse(messages_path, save_file_path)
 
 # Can also do
-# fmp = FbMsgParse(messages_path, save_path=save_file_path)
+# fmp = FbMsgParse(source_path=messages_path, save_path=save_file_path)
