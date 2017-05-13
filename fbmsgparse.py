@@ -150,8 +150,8 @@ class FbMsgParse:
         retFMP.threads = threads
         return retFMP
 
-    def unique_user_messages(self, u_id, u_name, min_size=0, max_size=None):
-        """ Retrieves all unique messages sent by a user.
+    def get_user_messages(self, u_id, u_name, min_size=0, max_size=None):
+        """ Retrieves all unique messages sent by a specified user.
 
         Parameters
         ----------

@@ -27,27 +27,26 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Example
 
-See [example.py](./example.py) for more.
-
+See [examples](./examples/) for more.
 
 Import fbmsgparse
 ```python
-import fbmsgparse as fb
+from fbmsgparse import FbMsgParse
 ```
 Create a FbMsgParse object with the path to your messages.htm document.
 ```python
-messages_path ='html/messages.htm' 
-fmp = fb.FbMsgParse(messages_path)
+messages_path ='html/messages.htm'
+fmp = FbMsgParse(messages_path)
 ```
 Print out some stats
 ```python
 print(fmp.stats())
 ```
-Use unique_user_messages() to extract a list of all of that user's messages (excluding direct messages with them).
+Use get_user_messages() to extract a list of all of a specified user's messages from threads with a minimum of 3 members.
 ```python
-u_name = 'Name Surname'
 u_id = '1234567890'
-msgs = fmp.unique_user_messages(u_id, u_name, allow_personals=False)
+u_name = 'Name Surname'
+msgs = fmp.get_user_messages(u_id, u_name, min_size=3)
 ```
 
 
