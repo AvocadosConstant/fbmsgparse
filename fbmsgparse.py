@@ -29,13 +29,11 @@ class FbMsgParse:
 
     Parameters
     ----------
-    source_path : str, optional*
+    source_path : str, optional
         The path to the Facebook message archive htm-document.
 
-    save_path : str, optional*
+    save_path : str, optional
         The location to the serialized save file.
-
-    *: At most one param can be optional
 
     Attributes
     ----------
@@ -61,10 +59,7 @@ class FbMsgParse:
 
         # Neither param is defined
         else:
-            # TODO: Implement something more logical here.
-            #       Maybe raise a custom exception?
-            print('Please pass in valid params')
-            sys.exit(1)
+            self.threads = []
 
     def parse(self, path):
         """ Parses a source Facebook message archive .htm file into self.threads
@@ -85,10 +80,11 @@ class FbMsgParse:
         self.threads = []
 
         for div in thread_divs:
-            ids = [uid.replace('@facebook.com', '')
+            ids = [uid.replace('@facebook.com', '').strip()
                     for uid
                     in div.find(text=re.compile('@facebook.com')).split(',')]
-            senders = [sender.text.strip()
+
+            senders = [sender.text.replace('@facebook.com', '').strip()
                        for sender in div.find_all('span', class_='user')]
             dates = [datetime.strptime(date.text.strip(), DATE_FORMAT)
                      for date in div.find_all('span', class_='meta')]
@@ -126,7 +122,35 @@ class FbMsgParse:
             print('Error: Cannot load from file', path, '!')
             sys.exit(1)
 
-    def unique_user_messages(self, u_id, u_name, allow_personals=True):
+    def threads_with_user(self, u_id, u_name):
+        """ Returns a FbMsgParse object containing the threads a given user is in
+
+        Parameters
+        ----------
+        u_id : str
+            A Facebook user id.
+
+        u_name : str
+            A user's displayed name on Facebook.
+
+        Returns
+        -------
+        retFMP : FbMsgParse
+            Contains all threads with specified user
+        """
+        threads = []
+
+        for thread in self.threads:
+            for msg in thread.messages:
+                if msg.sender == u_name or msg.sender == u_id:
+                    threads.append(thread)
+                    break
+
+        retFMP = FbMsgParse()
+        retFMP.threads = threads
+        return retFMP
+
+    def unique_user_messages(self, u_id, u_name, min_size=0, max_size=None):
         """ Retrieves all unique messages sent by a user.
 
         Parameters
@@ -137,8 +161,11 @@ class FbMsgParse:
         u_name : str
             A user's displayed name on Facebook.
 
-        allow_personals : bool
-            Whether or not direct messages should be included.
+        min_size : int, optional
+            Minimum group size inclusive
+
+        max_size : int, optional
+            Maximum group size inclusive
 
         Returns
         -------
@@ -147,10 +174,10 @@ class FbMsgParse:
         """
         texts = []
         for thread in self.threads:
-            # Don't add personal chat
-            if allow_personals or len(thread.uids) > 2:
+            num_users = len(thread.uids)
+            if num_users >= min_size and (max_size is None or num_users <= max_size):
                 for msg in thread.messages:
-                    if msg.sender == u_name or msg.sender == u_id:
+                    if (msg.sender == u_name or msg.sender == u_id) and msg.text:
                         texts.append(msg.text)
         return texts
 
