@@ -37,7 +37,7 @@ class FbMsgParse:
 
     Attributes
     ----------
-    threads : list of Thread
+    _threads : list of Thread
         All the direct messages or group chats in the archive.
     """
     def __init__(self, source_path=None, save_path=None):
@@ -59,10 +59,10 @@ class FbMsgParse:
 
         # Neither param is defined
         else:
-            self.threads = []
+            self._threads = []
 
     def parse(self, path):
-        """ Parses a source Facebook message archive .htm file into self.threads
+        """ Parses a source Facebook message archive .htm file into self._threads
 
         Parameters
         ----------
@@ -77,7 +77,7 @@ class FbMsgParse:
         # Extract all threads
         thread_divs = soup.find_all('div', class_='thread')
 
-        self.threads = []
+        self._threads = []
 
         for div in thread_divs:
             ids = [uid.replace('@facebook.com', '').strip()
@@ -91,20 +91,20 @@ class FbMsgParse:
             texts = [text.text.strip() for text in div.find_all('p')]
 
             messages = [Message(*msg) for msg in zip(senders, dates, texts)]
-            self.threads.append(Thread(ids, messages))
+            self._threads.append(Thread(ids, messages))
 
     def save(self, path):
-        """ Serializes self.threads into the given path.
+        """ Serializes self._threads into the given path.
 
         Parameters
         ----------
         path : str
             Path to savefile.
         """
-        pickle.dump(self.threads, open(path, 'wb'))
+        pickle.dump(self._threads, open(path, 'wb'))
 
     def load(self, path):
-        """ Loads self.threads from serialized save file.
+        """ Loads self._threads from serialized save file.
 
         Parameters
         ----------
@@ -113,7 +113,7 @@ class FbMsgParse:
         """
         try:
             with open(path, 'rb') as f:
-                self.threads = pickle.load(f)
+                self._threads = pickle.load(f)
         except FileNotFoundError as e:
             print(e)
             print('FileNotFoundError: Path', path, ' does not exist!')
@@ -138,16 +138,12 @@ class FbMsgParse:
         retFMP : FbMsgParse
             Contains all threads with specified user
         """
-        threads = []
-
-        for thread in self.threads:
+        retFMP = FbMsgParse()
+        for thread in self._threads:
             for msg in thread.messages:
                 if msg.sender == u_name or msg.sender == u_id:
-                    threads.append(thread)
+                    retFMP._threads.append(thread)
                     break
-
-        retFMP = FbMsgParse()
-        retFMP.threads = threads
         return retFMP
 
     def get_user_messages(self, u_id, u_name, min_size=0, max_size=None):
@@ -173,7 +169,7 @@ class FbMsgParse:
             All the message bodies sent by a user.
         """
         texts = []
-        for thread in self.threads:
+        for thread in self._threads:
             num_users = len(thread.uids)
             if num_users >= min_size and (max_size is None or num_users <= max_size):
                 for msg in thread.messages:
@@ -182,4 +178,4 @@ class FbMsgParse:
         return texts
 
     def stats(self):
-        return 'There are %d parsed conversations.\n' % len(self.threads)
+        return 'There are %d parsed conversations.\n' % len(self._threads)
