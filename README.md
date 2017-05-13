@@ -53,3 +53,8 @@ msgs = fmp.get_user_messages(u_id, u_name, min_size=3)
 ## Built With
 
 * [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/) - Scraping galore
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details
