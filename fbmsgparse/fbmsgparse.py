@@ -13,6 +13,16 @@ DATE_FORMAT = '%A, %B %d, %Y at %I:%M%p %Z'
 The date format used in messages.
 """
 
+FB_ID_ENDING = '@facebook.com'
+"""
+How FB IDs are ended.
+"""
+
+ID_RE = re.compile(FB_ID_ENDING)
+"""
+Regex for finding IDs
+"""
+
 Message = namedtuple('Message', 'sender date text')
 Thread = namedtuple('Thread', 'uids messages')
 
@@ -80,11 +90,14 @@ class FbMsgParse:
         self._threads = []
 
         for div in thread_divs:
-            ids = [uid.replace('@facebook.com', '').strip()
-                    for uid
-                    in div.find(text=re.compile('@facebook.com')).split(',')]
+            ids = []
+            id_string = div.find(text=ID_RE)
+            if(id_string):
+                # id_string might not be found if no members in a thread
+                ids = [uid.replace(FB_ID_ENDING, '').strip()
+                       for uid in id_string.split(',')]
 
-            senders = [sender.text.replace('@facebook.com', '').strip()
+            senders = [sender.text.replace(FB_ID_ENDING, '').strip()
                        for sender in div.find_all('span', class_='user')]
             dates = [datetime.strptime(date.text.strip(), DATE_FORMAT)
                      for date in div.find_all('span', class_='meta')]
